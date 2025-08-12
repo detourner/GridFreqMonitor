@@ -1,5 +1,5 @@
 [Unit]
-Description=WebSocket GridFreqMonitor Service
+Description=WebSocket grid_freq_monitor Service
 After=network.target
 
 [Service]
