@@ -25,16 +25,16 @@ The grid frequency value is calculated by dividing the 100 Hz signal by 2 and av
 3. Enable and start the systemd service:
 
    ```bash
-    sudo cp freq_logger_service.service /etc/systemd/system/
+    sudo cp grid_freq_monitor.service /etc/systemd/system/
     sudo systemctl daemon-reload
-    sudo systemctl enable freq_logger_service.service
-    sudo systemctl start freq_logger_service.service
+    sudo systemctl enable grid_freq_monitor.service
+    sudo systemctl start grid_freq_monitor.service
 
 4. Check service status and logs:
 
    ```bash
-    sudo systemctl status freq_logger_service.service
-    journalctl -u freq_logger_service.service -f
+    sudo systemctl status grid_freq_monitor.service
+    journalctl -u grid_freq_monitor.service -f
 
 ## Usage
 - The service will start automatically at boot.
