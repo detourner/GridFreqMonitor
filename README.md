@@ -63,7 +63,7 @@ Follow these steps to set up the `GridFreqMonitor` project on your Raspberry Pi:
    {
        "time_stamp": 1690000000.123456,
        "last_update_time": 1690000000.123456,
-       "frequency": 50.48
+       "frequency": 50.480
    }
    ```
 

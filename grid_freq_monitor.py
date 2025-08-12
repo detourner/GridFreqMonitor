@@ -59,7 +59,7 @@ async def handler(websocket, path):
                 data = {
                     "time_stamp": time.time(),
                     "last_update_time,": last_update_time,  # Include the last update time when current_frequency was calculated
-                    "frequency": round(current_frequency, 2) if current_frequency is not None else None
+                    "frequency": round(current_frequency, 3) if current_frequency is not None else None
                 }
                 await websocket.send(json.dumps(data))
                 await asyncio.sleep(1)  # async sleep for 1 second
