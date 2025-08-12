@@ -13,45 +13,64 @@ The grid frequency value is calculated by dividing the 100 Hz signal by 2 and av
 - Sends grid frequency data every second over WebSocket.
 - Runs as a systemd service on Raspberry Pi.
 - Uses a Python virtual environment for dependencies.
+- Script uses `pigpiod` to manage GPIO
 
 ## Setup Instructions
 
-1. Copy all files to your Raspberry Pi user's home directory (e.g., `/home/pi/grid_freq_monitor/`).
+Follow these steps to set up the `GridFreqMonitor` project on your Raspberry Pi:
 
-2. Make the setup script executable:
+1. **Copy Files**: Copy all project files to your Raspberry Pi user's home directory (e.g., `/home/pi/grid_freq_monitor/`).
+
+2. **Make the Setup Script Executable**: 
    ```bash
    chmod +x setup_and_run.sh
+   ```
 
-3. Enable and start the systemd service:
+3. **Configure sudo for pigpiod**: To allow the service to start the `pigpiod` daemon without requiring a password:
+   - Open the `sudoers` file for editing:
+     ```bash
+     sudo visudo
+     ```
+   - Add the following line at the end of the file:
+     ```plaintext
+     pi ALL=(ALL) NOPASSWD: /usr/bin/pigpiod
+     ```
+   - Save and exit the editor. If you are using `nano` (default editor for `visudo`), press `Ctrl+O` to save and `Ctrl+X` to exit.
+   - Verify the configuration by running:
+     ```bash
+     sudo pigpiod
+     ```
+     If the command runs without asking for a password, the configuration is correct.
 
+4. **Enable and Start the Systemd Service**:
    ```bash
-    sudo cp grid_freq_monitor.service /etc/systemd/system/
-    sudo systemctl daemon-reload
-    sudo systemctl enable grid_freq_monitor.service
-    sudo systemctl start grid_freq_monitor.service
+   sudo cp freq_logger_service.service /etc/systemd/system/
+   sudo systemctl daemon-reload
+   sudo systemctl enable freq_logger_service.service
+   sudo systemctl start freq_logger_service.service
+   ```
 
-4. Check service status and logs:
-
+5. **Check Service Status and Logs**:
    ```bash
-    sudo systemctl status grid_freq_monitor.service
-    journalctl -u grid_freq_monitor.service -f
+   sudo systemctl status freq_logger_service.service
+   journalctl -u freq_logger_service.service -f
+   ```
 
 ## Usage
 - The service will start automatically at boot.
-- Connect a WebSocket client to ws://<raspberry-pi-ip>:8765 to receive JSON messages:
-
+- Connect a WebSocket client to `ws://<raspberry-pi-ip>:8765` to receive JSON messages:
    ```json
-    {
-    "timestamp": 1690000000.123456,
-    "last_update_time": 1690000000.123999,
-    "frequency": 99.7
-    }
+   {
+       "timestamp": 1690000000.123456,
+       "frequency": 99.7
+   }
+   ```
 
 ## Notes
-- Update user 'pi' if necessary (update grid_freq_monitor.service file) 
+- Update user `pi` if necessary (update freq_logger_service.service file) 
 - Make sure pigpiod daemon is running (the service starts it if needed).
 - GPIO pins 17 and 27 must be connected to your frequency sources.
-- Modify GPIO pin numbers and other parameters in grid_freq_monitor.py if necessary.
+- Modify GPIO pin numbers and other parameters in ws_frequency_server.py if necessary.
 
 ## Reference
 - https://www.swissgrid.ch/en/home/operation/grid-data/current-data.html#frequency

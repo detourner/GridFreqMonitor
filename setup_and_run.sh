@@ -30,7 +30,7 @@ fi
 
 # 4. Start pigpiod if it is not already running
 if ! pgrep -x "pigpiod" > /dev/null; then
-    sudo pigpiod
+    pigpiod
     if [ $? -ne 0 ]; then
         echo "Error: Failed to start pigpiod."
         exit 1
