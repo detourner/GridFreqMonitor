@@ -61,8 +61,9 @@ Follow these steps to set up the `GridFreqMonitor` project on your Raspberry Pi:
 - Connect a WebSocket client to `ws://<raspberry-pi-ip>:8765` to receive JSON messages:
    ```json
    {
-       "timestamp": 1690000000.123456,
-       "frequency": 99.7
+       "time_stamp": 1690000000.123456,
+       "last_update_time": 1690000000.123456,
+       "frequency": 50.48
    }
    ```
 
