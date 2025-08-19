@@ -68,7 +68,8 @@ Follow these steps to set up the `GridFreqMonitor` project on your Raspberry Pi:
    ```
 
 ## Notes
-- Update user `pi` if necessary (update freq_logger_service.service file) 
+- Update user `pi` if necessary (update freq_logger_service.service file)
+- Update linux script by command `dos2unix` if necessary  
 - Make sure pigpiod daemon is running (the service starts it if needed).
 - GPIO pins 17 and 27 must be connected to your frequency sources.
 - Modify GPIO pin numbers and other parameters in ws_frequency_server.py if necessary.
