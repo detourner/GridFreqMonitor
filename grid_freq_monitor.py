@@ -6,8 +6,8 @@ import asyncio
 import websockets
 
 # === CONFIGURATION ===
-GPIO_1HZ = 17               # GPIO pin for 1 Hz reference signal
-GPIO_GRIS_SIGNAL = 27       # GPIO pin signal to measure (e.g., from a grid frequency sensor)
+GPIO_1HZ = 18               # GPIO pin for 1 Hz reference signal
+GPIO_INPUT_SIGNAL = 27       # GPIO pin signal to measure (e.g., from a grid frequency sensor)
 WEBSERVER_PORT = 8765
 NUMBER_OF_SAMPLES = 1000     # Number of samples to keep in the buffer for frequency calculation
 DEBOUNCE_TIME_MS = 8000      # Debounce time in microsecond for the input signal
@@ -47,6 +47,8 @@ def cb_1Hz(gpio, level, tick):
     """
     global last_tick_1Hz, current_frequency, last_update_time
 
+    
+
     # Calculate base time (seconds) from the 1 Hz reference
     if last_tick_1Hz is None:
         last_tick_1Hz = tick
@@ -54,6 +56,8 @@ def cb_1Hz(gpio, level, tick):
     dt_us = pigpio.tickDiff(last_tick_1Hz, tick)
     base_time_seconds = dt_us / 1_000_000.0
     last_tick_1Hz = tick
+
+    print(f"Base time: {base_time_seconds:.6f} seconds (from 1 Hz signal)")
 
     # Only compute if there a data in buffer is full
     if len(ticks_grid_signal) >= 2:
@@ -68,15 +72,15 @@ def cb_1Hz(gpio, level, tick):
         current_frequency = (measured_freq / base_time_seconds) / 2.0
         last_update_time = time.time()
 
-        print(f"Frequency: {current_frequency:.3f} Hz (at {last_update_time:.3f} seconds) [{len(ticks_grid_signal)} samples ; Measured: {measured_freq:.3f} Hz ; Base time: {base_time_seconds:.3f}]")
+        print(f"Frequency: {current_frequency:.6f} Hz (at {last_update_time:.6f} seconds) [{len(ticks_grid_signal)} samples ; Measured: {measured_freq:.6f} Hz]")
 
 # === GPIO Configuration ===
-pi.set_mode(GPIO_GRIS_SIGNAL, pigpio.INPUT)
-pi.set_pull_up_down(GPIO_GRIS_SIGNAL, pigpio.PUD_UP)
+pi.set_mode(GPIO_INPUT_SIGNAL, pigpio.INPUT)
+pi.set_pull_up_down(GPIO_INPUT_SIGNAL, pigpio.PUD_UP)
 pi.set_mode(GPIO_1HZ, pigpio.INPUT)
 pi.set_pull_up_down(GPIO_1HZ, pigpio.PUD_UP)
 
-pi.callback(GPIO_GRIS_SIGNAL, pigpio.FALLING_EDGE, cb_grid_signal)
+pi.callback(GPIO_INPUT_SIGNAL, pigpio.FALLING_EDGE, cb_grid_signal)
 pi.callback(GPIO_1HZ, pigpio.FALLING_EDGE, cb_1Hz)
 
 # === WebSocket Server ===
