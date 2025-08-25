@@ -44,16 +44,16 @@ Follow these steps to set up the `GridFreqMonitor` project on your Raspberry Pi:
 
 4. **Enable and Start the Systemd Service**:
    ```bash
-   sudo cp freq_logger_service.service /etc/systemd/system/
+   sudo cp grid_freq_monitor.service /etc/systemd/system/
    sudo systemctl daemon-reload
-   sudo systemctl enable freq_logger_service.service
-   sudo systemctl start freq_logger_service.service
+   sudo systemctl enable grid_freq_monitor.service
+   sudo systemctl start grid_freq_monitor.service
    ```
 
 5. **Check Service Status and Logs**:
    ```bash
-   sudo systemctl status freq_logger_service.service
-   journalctl -u freq_logger_service.service -f
+   sudo systemctl status grid_freq_monitor.service
+   journalctl -u grid_freq_monitor.service -f
    ```
 
 ## Usage
