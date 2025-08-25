@@ -84,7 +84,7 @@ pi.callback(GPIO_INPUT_SIGNAL, pigpio.FALLING_EDGE, cb_grid_signal)
 pi.callback(GPIO_1HZ, pigpio.FALLING_EDGE, cb_1Hz)
 
 # === WebSocket Server ===
-async def handler(websocket, path):
+async def handler(websocket):
     """
     WebSocket handler for connected clients.
     - Sends the current frequency once per second in JSON format.
@@ -98,7 +98,7 @@ async def handler(websocket, path):
             data = {
                 "time_stamp": time.time(),
                 "last_update_time": last_update_time,
-                "frequency": round(current_frequency, 3) if current_frequency is not None else None
+                "frequency": f"{current_frequency:.3f}" if current_frequency is not None else None
             }
             await websocket.send(json.dumps(data))
             await asyncio.sleep(1)
