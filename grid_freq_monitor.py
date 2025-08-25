@@ -6,8 +6,8 @@ import asyncio
 import websockets
 
 # === CONFIGURATION ===
-GPIO_1HZ = 18               # GPIO pin for 1 Hz reference signal
-GPIO_INPUT_SIGNAL = 27       # GPIO pin signal to measure (e.g., from a grid frequency sensor)
+GPIO_1HZ = 21               # GPIO pin for 1 Hz reference signal
+GPIO_INPUT_SIGNAL = 24       # GPIO pin signal to measure (e.g., from a grid frequency sensor)
 WEBSERVER_PORT = 8765
 NUMBER_OF_SAMPLES = 1000     # Number of samples to keep in the buffer for frequency calculation
 DEBOUNCE_TIME_MS = 8000      # Debounce time in microsecond for the input signal
