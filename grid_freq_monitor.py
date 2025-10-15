@@ -111,7 +111,13 @@ async def handler(websocket):
 # === Main Function ===
 async def main():
     try:
-        server = await websockets.serve(handler, "0.0.0.0", WEBSERVER_PORT)
+        server = await websockets.serve(
+            handler, 
+            "0.0.0.0", 
+            WEBSERVER_PORT,
+            ping_interval=10, # send a ping every 10 seconds to keep the connection alive
+            ping_timeout=5    # wait 5 seconds for a pong response before considering the connection dead
+        )
         print(f"WebSocket server started at ws://0.0.0.0:{WEBSERVER_PORT}")
         await asyncio.Future()  # Run forever
     except KeyboardInterrupt:
