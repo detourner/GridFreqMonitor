@@ -75,6 +75,13 @@ Follow these steps to set up the `GridFreqMonitor` project on your Raspberry Pi:
 - Modify GPIO pin numbers and other parameters in ws_frequency_server.py if necessary.
 - Disable print() in release
 
+## Example Implementation
+
+Below is a typical implementation of the GridFreqMonitor system using the Raspberry Pi, mains signal detection circuit, and GPS PPS reference.
+
+![FS_001](FS_001.jpg))
+
+
 ## Reference
 - https://www.swissgrid.ch/en/home/operation/grid-data/current-data.html#frequency
 - https://oinkzwurgl.org/projaeggd/mains-frequency/
