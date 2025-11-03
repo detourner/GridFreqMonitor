@@ -35,8 +35,8 @@ Follow these steps to set up the `GridFreqMonitor` project on your Raspberry Pi:
    Optionally, if you need to allow local anonymous connections for this project (or if the service cannot connect), add the following lines to `/etc/mosquitto/mosquitto.conf` with these contents:
 
    ```
-   # Allow local anonymous connections for GridFreqMonitor
-   listener 1883 127.0.0.1
+   # Allow local anonymous connections
+   listener 1883
    allow_anonymous true
    ```
 
