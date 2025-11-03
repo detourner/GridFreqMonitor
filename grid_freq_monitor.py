@@ -2,15 +2,16 @@ import pigpio
 import time
 from collections import deque
 import json
-import asyncio
-import websockets
+import paho.mqtt.client as mqtt
 
 # === CONFIGURATION ===
 GPIO_1HZ = 21               # GPIO pin for 1 Hz reference signal
-GPIO_INPUT_SIGNAL = 24       # GPIO pin signal to measure (e.g., from a grid frequency sensor)
-WEBSERVER_PORT = 8765
-NUMBER_OF_SAMPLES = 1000     # Number of samples to keep in the buffer for frequency calculation
-DEBOUNCE_TIME_MS = 8000      # Debounce time in microsecond for the input signal
+GPIO_INPUT_SIGNAL = 24      # GPIO pin signal to measure (e.g., from a grid frequency sensor)
+MQTT_BROKER = "localhost"   # MQTT broker address (local Mosquitto broker)
+MQTT_PORT = 1883            # MQTT broker port
+MQTT_TOPIC = "grid/frequency"  # MQTT topic to publish frequency data
+NUMBER_OF_SAMPLES = 1000    # Number of samples to keep in the buffer for frequency calculation
+DEBOUNCE_TIME_MS = 8000     # Debounce time in microseconds for the input signal
 
 # Connect to pigpio (make sure to run 'sudo pigpiod' before starting this script)
 pi = pigpio.pi()
@@ -18,12 +19,24 @@ if not pi.connected:
     exit("Unable to connect to pigpio. Please run 'sudo pigpiod'.")
 
 # === Measurement state ===
-ticks_grid_signal = deque(maxlen=NUMBER_OF_SAMPLES) # stores tick times for all last samples of the input grid signal
-last_tick_grid_signal = None                        # last tick recorded for the 100 Hz signal
-last_tick_1Hz = None                                # last tick recorded for the 1 Hz signal
-current_frequency = None                            # most recent calculated average frequency (Hz)
-last_update_time = None                             # timestamp (seconds) when current_frequency was last updated
+ticks_grid_signal = deque(maxlen=NUMBER_OF_SAMPLES)  # Stores tick times for all last samples of the input grid signal
+last_tick_grid_signal = None                        # Last tick recorded for the 100 Hz signal
+last_tick_1Hz = None                                # Last tick recorded for the 1 Hz signal
+current_frequency = None                            # Most recent calculated average frequency (Hz)
+last_update_time = None                             # Timestamp (seconds) when current_frequency was last updated
 
+# === MQTT Client Setup ===
+mqtt_client = mqtt.Client()
+
+def on_connect(client, userdata, flags, rc):
+    if rc == 0:
+        print("Connected to MQTT broker.")
+    else:
+        print(f"Failed to connect to MQTT broker. Return code: {rc}")
+
+mqtt_client.on_connect = on_connect
+mqtt_client.connect(MQTT_BROKER, MQTT_PORT, 60)
+mqtt_client.loop_start()
 
 # === Callbacks ===
 def cb_grid_signal(gpio, level, tick):
@@ -47,8 +60,6 @@ def cb_1Hz(gpio, level, tick):
     """
     global last_tick_1Hz, current_frequency, last_update_time
 
-    
-
     # Calculate base time (seconds) from the 1 Hz reference
     if last_tick_1Hz is None:
         last_tick_1Hz = tick
@@ -59,7 +70,7 @@ def cb_1Hz(gpio, level, tick):
 
     print(f"Base time: {base_time_seconds:.6f} seconds (from 1 Hz signal)")
 
-    # Only compute if there a data in buffer is full
+    # Only compute if there is data in the buffer
     if len(ticks_grid_signal) >= 2:
         tick_old = ticks_grid_signal[0]
         tick_new = ticks_grid_signal[-1]
@@ -74,6 +85,15 @@ def cb_1Hz(gpio, level, tick):
 
         print(f"Frequency: {current_frequency:.6f} Hz (at {last_update_time:.6f} seconds) [{len(ticks_grid_signal)} samples ; Measured: {measured_freq:.6f} Hz]")
 
+        # Publish the frequency data to the MQTT broker
+        data = {
+            "time_stamp": time.time(),
+            "last_update_time": last_update_time,
+            "frequency": round(current_frequency, 3)
+        }
+        mqtt_client.publish(MQTT_TOPIC, json.dumps(data))
+
+
 # === GPIO Configuration ===
 pi.set_mode(GPIO_INPUT_SIGNAL, pigpio.INPUT)
 pi.set_pull_up_down(GPIO_INPUT_SIGNAL, pigpio.PUD_UP)
@@ -83,54 +103,16 @@ pi.set_pull_up_down(GPIO_1HZ, pigpio.PUD_UP)
 pi.callback(GPIO_INPUT_SIGNAL, pigpio.FALLING_EDGE, cb_grid_signal)
 pi.callback(GPIO_1HZ, pigpio.FALLING_EDGE, cb_1Hz)
 
-# === WebSocket Server ===
-async def handler(websocket):
-    """
-    WebSocket handler for connected clients.
-    - Sends the current frequency once per second in JSON format.
-    - Includes both the latest frequency and the timestamp of its calculation.
-    """
-    client_ip = websocket.remote_address[0] if websocket.remote_address else "Unknown"
-    print(f"Client connected from IP: {client_ip}")
-
-    try:
-        while True:
-            data = {
-                "time_stamp": time.time(),
-                "last_update_time": last_update_time,
-                "frequency": f"{current_frequency:.3f}" if current_frequency is not None else None
-            }
-            await websocket.send(json.dumps(data))
-            await asyncio.sleep(1)
-    except websockets.ConnectionClosed:
-        print(f"Client disconnected from IP: {client_ip}")
-    except Exception as e:
-        print(f"Unexpected error with client {client_ip}: {e}")
-
-
 # === Main Function ===
-async def main():
-    try:
-        server = await websockets.serve(
-            handler, 
-            "0.0.0.0", 
-            WEBSERVER_PORT,
-            ping_interval=10, # send a ping every 10 seconds to keep the connection alive
-            ping_timeout=5    # wait 5 seconds for a pong response before considering the connection dead
-        )
-        print(f"WebSocket server started at ws://0.0.0.0:{WEBSERVER_PORT}")
-        await asyncio.Future()  # Run forever
-    except KeyboardInterrupt:
-        print("WebSocket server interrupted by user.")
-    finally:
-        server.close()
-        await server.wait_closed()
-        print("WebSocket server stopped.")
-
-
 if __name__ == "__main__":
     try:
-        asyncio.run(main())
+        print(f"Publishing frequency data to MQTT broker at {MQTT_BROKER}:{MQTT_PORT}, topic: {MQTT_TOPIC}")
+        while True:
+            time.sleep(1)  # Keep the script running
+    except KeyboardInterrupt:
+        print("Script interrupted by user.")
     finally:
+        mqtt_client.loop_stop()
+        mqtt_client.disconnect()
         pi.stop()
         print("Pigpio connection stopped.")
