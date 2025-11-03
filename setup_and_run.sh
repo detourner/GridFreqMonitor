@@ -22,7 +22,7 @@ fi
 
 # 3. Install dependencies
 pip install --upgrade pip
-pip install pigpio websockets
+pip install pigpio paho-mqtt
 if [ $? -ne 0 ]; then
     echo "Error: Failed to install dependencies."
     exit 1
@@ -38,7 +38,17 @@ if ! pgrep -x "pigpiod" > /dev/null; then
     sleep 1  # wait for pigpiod to start
 fi
 
-# 5. Run the Python script
+# 5. Start Mosquitto if it is not already running
+if ! pgrep -x "mosquitto" > /dev/null; then
+    sudo systemctl start mosquitto
+    if [ $? -ne 0 ]; then
+        echo "Error: Failed to start Mosquitto."
+        exit 1
+    fi
+    echo "Mosquitto started successfully."
+fi
+
+# 6. Run the Python script
 python3 "$SCRIPT_PATH"
 if [ $? -ne 0 ]; then
     echo "Error: Failed to run the Python script."
