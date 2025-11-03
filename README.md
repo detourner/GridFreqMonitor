@@ -32,6 +32,19 @@ Follow these steps to set up the `GridFreqMonitor` project on your Raspberry Pi:
    sudo systemctl status mosquitto
    ```
 
+   Optionally, if you need to allow local anonymous connections for this project (or if the service cannot connect), add the following lines to `/etc/mosquitto/mosquitto.conf` with these contents:
+
+   ```
+   # Allow local anonymous connections for GridFreqMonitor
+   listener 1883 127.0.0.1
+   allow_anonymous true
+   ```
+
+   Then restart Mosquitto:
+   ```bash
+   sudo systemctl restart mosquitto
+   ```
+
 2. **Copy Files**: Copy all project files to your Raspberry Pi user's home directory (e.g., `/home/pi/grid_freq_monitor/`).
 
 3. **Make the Setup Script Executable**: 
