@@ -2,11 +2,13 @@
 This project configures a Raspberry Pi to measure the electrical grid frequency (50 Hz) in real-time and streams the data via MQTT. Written in Python, it enables live monitoring of power grid stability and frequency variations for analysis or integration with other systems.
 
 # Operating Principle
-The circuit used to measure the grid frequency is based on a [mains module](https://fr.aliexpress.com/item/32828199766.htm), with a small modification. The modification involves removing the smoothing capacitor, which results in a 100 Hz signal being sent to the optocoupler (a pulse at each zero crossing).
+The circuit used to measure the grid frequency is based on a [mains module](https://fr.aliexpress.com/item/32828199766.htm), slightly modified by removing the smoothing capacitor. This modification produces a 100 Hz signal (a pulse at each zero crossing of the AC waveform) sent to the optocoupler.
 
-This frequency is then compared to a 1 Hz reference signal obtained from the PPS signal of a GPS [GT-U7](https://fr.aliexpress.com/item/32832919409.html) module (based on an atomic clock). To achieve this, the number of pulses from the 100 Hz signal is counted during 10 pulses of the 1 Hz signal (i.e., over 10 seconds). 
+Instead of counting pulses, the algorithm records the timestamp (in microseconds) of each zero crossing over a 10-second history. Every second, the grid frequency is computed from the time difference between the first and the last zero-crossing events within this 10-second window. 
 
-The grid frequency value is calculated by dividing the 100 Hz signal by 2 and averaging it over 10 seconds. The frequency is updated every second using a sliding average.
+To compensate for the Raspberry Pi’s internal clock drift, this time difference is corrected using the PPS (Pulse-Per-Second) signal from a [GT-U7](https://fr.aliexpress.com/item/32832919409.html) GPS module, which provides a reference synchronized to an atomic clock.
+
+The frequency value is updated every second using a sliding average and published via MQTT.
 
 ## Features
 - Measures 100Hz input pulses and averages over 10 seconds.
